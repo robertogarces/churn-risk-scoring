@@ -14,6 +14,10 @@ data:
   test_size: 0.2
   random_state: 42
 
+# ── Tuning ────────────────────────────────────────────────
+tuning:
+  n_trials: 10
+
 # ── Business ──────────────────────────────────────────────
 business:
   arpu_aud: 64.76
