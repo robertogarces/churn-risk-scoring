@@ -7,6 +7,15 @@ from pathlib import Path
 import hydra
 from omegaconf import DictConfig
 
+from src.data.features import (
+    DROP_COLS,
+    BINARY_COLS,
+    BINARY_MAP,
+    CATEGORICAL_COLS,
+    SERVICE_COLS,
+    EXPECTED_COLS
+)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
@@ -35,9 +44,8 @@ def drop_columns(df: pd.DataFrame) -> pd.DataFrame:
     - gender: no signal, ethical concerns in scoring models
     - TotalCharges: 0.83 correlation with tenure (multicollinearity)
     """
-    cols_to_drop = ['customerID', 'gender', 'TotalCharges']
-    df = df.drop(columns=cols_to_drop)
-    logger.info(f"Dropped columns: {cols_to_drop}")
+    df = df.drop(columns=DROP_COLS)
+    logger.info(f"Dropped columns: {DROP_COLS}")
     return df
 
 
@@ -47,14 +55,9 @@ def encode_binary_columns(df: pd.DataFrame) -> pd.DataFrame:
     SeniorCitizen is already int.
     """
     df = df.copy()
-    binary_cols = [
-        'Partner', 'Dependents', 'PhoneService', 'PaperlessBilling',
-        'OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
-        'TechSupport', 'StreamingTV', 'StreamingMovies', 'MultipleLines'
-    ]
-    for col in binary_cols:
-        df[col] = df[col].map({'Yes': 1, 'No': 0, 'No internet service': 0, 'No phone service': 0})
-    logger.info(f"Encoded {len(binary_cols)} binary columns to 0/1")
+    for col in BINARY_COLS:
+        df[col] = df[col].map(BINARY_MAP)
+    logger.info(f"Encoded {len(BINARY_COLS)} binary columns to 0/1")
     return df
 
 
@@ -64,10 +67,9 @@ def encode_categorical_columns(df: pd.DataFrame) -> pd.DataFrame:
     drop_first=True to avoid dummy variable trap.
     """
     df = df.copy()
-    cat_cols = ['Contract', 'PaymentMethod', 'InternetService']
-    df = pd.get_dummies(df, columns=cat_cols, drop_first=True)
-    new_cols = [c for c in df.columns if any(c.startswith(cat) for cat in cat_cols)]
-    logger.info(f"One-hot encoded {cat_cols} -> {len(new_cols)} new columns")
+    df = pd.get_dummies(df, columns=CATEGORICAL_COLS, drop_first=True)
+    new_cols = [c for c in df.columns if any(c.startswith(cat) for cat in CATEGORICAL_COLS)]
+    logger.info(f"One-hot encoded {CATEGORICAL_COLS} -> {len(new_cols)} new columns")
     return df
 
 
@@ -80,14 +82,27 @@ def create_features(df: pd.DataFrame) -> pd.DataFrame:
       LightGBM discover the interaction across 8 binary columns.
     """
     df = df.copy()
-    service_cols = [
-        'PhoneService', 'MultipleLines', 'OnlineSecurity',
-        'OnlineBackup', 'DeviceProtection', 'TechSupport',
-        'StreamingTV', 'StreamingMovies'
-    ]
-    df['n_services'] = df[service_cols].sum(axis=1)
-    logger.info(f"Created feature n_services from {len(service_cols)} service columns")
+    df['n_services'] = df[SERVICE_COLS].sum(axis=1)
+    logger.info(f"Created feature n_services from {len(SERVICE_COLS)} service columns")
     return df
+
+
+def transform(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Apply full transformation pipeline to a dataframe.
+    Used by both the batch pipeline and the API for inference.
+    Does not include fix_dtypes or drop_columns — those are
+    only needed for the raw training data, not for inference input.
+    """
+    df = encode_binary_columns(df)
+    df = create_features(df)
+    df = encode_categorical_columns(df)
+
+    for col in EXPECTED_COLS:
+        if col not in df.columns:
+            df[col] = 0
+
+    return df[EXPECTED_COLS]
 
 
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
@@ -101,16 +116,14 @@ def main(cfg: DictConfig) -> None:
 
     df = fix_dtypes(df)
     df = drop_columns(df)
-    df = encode_binary_columns(df)
-    df = create_features(df)
-    df = encode_categorical_columns(df)
+    df = transform(df)
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(output_path, index=False)
 
     logger.info(f"Processed dataset saved to {output_path}")
     logger.info(f"Final shape: {df.shape}")
-    logger.info(f"Columns: {', '.join(list(df.columns))}")
+    logger.info(f"Columns: {list(df.columns)}")
 
 
 if __name__ == "__main__":

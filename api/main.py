@@ -12,6 +12,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.schemas import CustomerProfile, ChurnPrediction, ChurnFactor
+from src.data.preprocessing import transform
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,69 +37,36 @@ app.add_middleware(
 
 # ── Load model and config on startup ─────────────────────
 MODEL_PATH = Path("models/lightgbm.pkl")
-CONFIG_PATH = Path("configs/model/lightgbm.yaml")
+CONFIG_PATH = Path("configs/config.yaml")
 
 with open(MODEL_PATH, "rb") as f:
     model = pickle.load(f)
 
 with open(CONFIG_PATH, "r") as f:
-    model_cfg = yaml.safe_load(f)
+    cfg = yaml.safe_load(f)
 
 explainer = shap.TreeExplainer(model)
 logger.info("Model and explainer loaded successfully")
+
+THRESHOLD_HIGH = cfg["scoring"]["thresholds"]["high"]
+THRESHOLD_MEDIUM = cfg["scoring"]["thresholds"]["medium"]
 
 
 # ── Preprocessing ─────────────────────────────────────────
 def preprocess_input(profile: CustomerProfile) -> pd.DataFrame:
     """
-    Apply the same preprocessing as preprocessing.py to a single customer profile.
-    Input is raw — same fields as the original CSV, no encoding needed from the caller.
+    Convert raw customer profile to model-ready dataframe.
+    Uses the same transform() pipeline as preprocessing.py.
     """
-    data = profile.model_dump()
-    df = pd.DataFrame([data])
-
-    # Binary encoding
-    binary_map = {'Yes': 1, 'No': 0, 'No internet service': 0, 'No phone service': 0}
-    binary_cols = [
-        'Partner', 'Dependents', 'PhoneService', 'PaperlessBilling',
-        'OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
-        'TechSupport', 'StreamingTV', 'StreamingMovies', 'MultipleLines'
-    ]
-    for col in binary_cols:
-        df[col] = df[col].map(binary_map)
-
-    # n_services feature
-    service_cols = [
-        'PhoneService', 'MultipleLines', 'OnlineSecurity',
-        'OnlineBackup', 'DeviceProtection', 'TechSupport',
-        'StreamingTV', 'StreamingMovies'
-    ]
-    df['n_services'] = df[service_cols].sum(axis=1)
-
-    # One-hot encoding
-    df = pd.get_dummies(df, columns=['Contract', 'PaymentMethod', 'InternetService'])
-
-    # Ensure all expected columns are present with correct order
-    expected_cols = [
-        'SeniorCitizen', 'Partner', 'Dependents', 'tenure', 'PhoneService',
-        'MultipleLines', 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
-        'TechSupport', 'StreamingTV', 'StreamingMovies', 'PaperlessBilling',
-        'MonthlyCharges', 'n_services', 'Contract_One year', 'Contract_Two year',
-        'PaymentMethod_Credit card (automatic)', 'PaymentMethod_Electronic check',
-        'PaymentMethod_Mailed check', 'InternetService_Fiber optic', 'InternetService_No'
-    ]
-    for col in expected_cols:
-        if col not in df.columns:
-            df[col] = 0
-
-    return df[expected_cols]
+    df = pd.DataFrame([profile.model_dump()])
+    return transform(df)
 
 
 # ── Risk segment ──────────────────────────────────────────
 def get_risk_segment(probability: float) -> str:
-    if probability >= 0.6:
+    if probability >= THRESHOLD_HIGH:
         return "high"
-    elif probability >= 0.3:
+    elif probability >= THRESHOLD_MEDIUM:
         return "medium"
     else:
         return "low"
@@ -113,7 +81,6 @@ def get_top_factors(df: pd.DataFrame, profile: CustomerProfile, n: int = 3) -> l
     shap_values = explainer(df)
     shap_array = shap_values.values[0]
 
-    # Map encoded column names back to raw feature values
     raw_values = profile.model_dump()
     feature_value_map = {
         'tenure': str(raw_values['tenure']),
@@ -143,14 +110,12 @@ def get_top_factors(df: pd.DataFrame, profile: CustomerProfile, n: int = 3) -> l
         'InternetService_No': 'Internet Service',
     }
 
-    # Add binary features
     for col in ['Partner', 'Dependents', 'PhoneService', 'PaperlessBilling',
                 'OnlineSecurity', 'OnlineBackup', 'DeviceProtection',
                 'TechSupport', 'StreamingTV', 'StreamingMovies', 'MultipleLines']:
         feature_value_map[col] = "Yes" if raw_values.get(col) == "Yes" else "No"
         feature_name_map[col] = col
 
-    # Sort by absolute SHAP value
     feature_names = df.columns.tolist()
     top_indices = np.argsort(np.abs(shap_array))[::-1][:n]
 
@@ -160,7 +125,6 @@ def get_top_factors(df: pd.DataFrame, profile: CustomerProfile, n: int = 3) -> l
         fname = feature_names[idx]
         display_name = feature_name_map.get(fname, fname)
 
-        # Avoid duplicate feature names (e.g. Contract appears in two columns)
         if display_name in seen_features:
             continue
         seen_features.add(display_name)
@@ -180,7 +144,7 @@ def get_top_factors(df: pd.DataFrame, profile: CustomerProfile, n: int = 3) -> l
 # ── Endpoints ─────────────────────────────────────────────
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": model_cfg["name"]}
+    return {"status": "ok", "model": "lightgbm"}
 
 
 @app.post("/predict", response_model=ChurnPrediction)

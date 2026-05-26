@@ -25,3 +25,9 @@ business:
   arpu_aud: 64.76
   retention_cost_aud: 15.0
   avg_lifetime_months: 24
+
+# ── Risk Scoring ──────────────────────────────────────────
+scoring:
+  thresholds:
+    high: 0.6
+    medium: 0.3
