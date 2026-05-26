@@ -3,27 +3,11 @@
 from pydantic import BaseModel, Field
 
 
-class CustomerProfile(BaseModel):
-    SeniorCitizen: int = Field(..., ge=0, le=1)
-    Partner: str
-    Dependents: str
-    tenure: int = Field(..., ge=0)
-    PhoneService: str
-    MultipleLines: str
-    InternetService: str
-    OnlineSecurity: str
-    OnlineBackup: str
-    DeviceProtection: str
-    TechSupport: str
-    StreamingTV: str
-    StreamingMovies: str
-    Contract: str
-    PaperlessBilling: str
-    PaymentMethod: str
-    MonthlyCharges: float = Field(..., gt=0)
+from pydantic import BaseModel, Field, ConfigDict
 
-    class Config:
-        json_schema_extra = {
+class CustomerProfile(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "SeniorCitizen": 0,
                 "Partner": "No",
@@ -44,7 +28,25 @@ class CustomerProfile(BaseModel):
                 "MonthlyCharges": 70.35
             }
         }
+    )
 
+    SeniorCitizen: int = Field(..., ge=0, le=1)
+    Partner: str
+    Dependents: str
+    tenure: int = Field(..., ge=0)
+    PhoneService: str
+    MultipleLines: str
+    InternetService: str
+    OnlineSecurity: str
+    OnlineBackup: str
+    DeviceProtection: str
+    TechSupport: str
+    StreamingTV: str
+    StreamingMovies: str
+    Contract: str
+    PaperlessBilling: str
+    PaymentMethod: str
+    MonthlyCharges: float = Field(..., gt=0)
 
 class ChurnFactor(BaseModel):
     feature: str
