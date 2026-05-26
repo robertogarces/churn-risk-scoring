@@ -8,6 +8,7 @@ paths:
   raw_data: data/raw/telco_customer_churn.csv
   processed_data: data/processed/churn_features.parquet
   models: models/
+  artifacts: artifacts/
 
 # ── Data split ────────────────────────────────────────────
 data:
