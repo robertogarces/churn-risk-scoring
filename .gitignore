@@ -14,11 +14,12 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# DVC
-/data/raw/
-/data/processed/
-/data/outputs/
-/models/
+# DVC - ignore data files but not DVC pointers
+/data/raw/*
+/data/processed/*
+/data/outputs/*
+/models/*
+!*.dvc
 
 # MLflow
 mlruns/
