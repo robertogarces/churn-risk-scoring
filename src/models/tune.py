@@ -21,7 +21,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Silenciar logs de Optuna
+# Silence Optuna's info logs to keep output clean
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 
@@ -60,39 +60,21 @@ def objective(trial, X: pd.DataFrame, y: pd.Series) -> float:
 def main(cfg: DictConfig) -> None:
     X, y = load_data(cfg.paths.processed_data)
 
-    logger.info("Starting hyperparameter optimization with Optuna (50 trials)...")
+    logger.info(f"Starting hyperparameter optimization with Optuna ({cfg.tuning.n_trials} trials)...")
     study = optuna.create_study(direction="maximize")
-    study.optimize(lambda trial: objective(trial, X, y), n_trials=50)
+    study.optimize(lambda trial: objective(trial, X, y), n_trials=cfg.tuning.n_trials)
 
     best_params = study.best_params
     best_score = study.best_value
     logger.info(f"Best ROC-AUC (CV): {best_score:.4f}")
-    logger.info(f"Best params: {best_params}")
 
-    # ── Log best run en MLflow ────────────────────────────
+    # ── Log en MLflow ─────────────────────────────────────
     mlflow.set_experiment("lightgbm-tuning")
     with mlflow.start_run(run_name="optuna-best"):
         mlflow.log_params(best_params)
         mlflow.log_metric("best_cv_roc_auc", best_score)
 
-        # Entrenar modelo final con best params sobre todo el dataset
-        logger.info("Training final model with best params...")
-        best_params["class_weight"] = "balanced"
-        best_params["random_state"] = 42
-        best_params["n_jobs"] = -1
-        best_params["verbosity"] = -1
-
-        final_model = LGBMClassifier(**best_params)
-        final_model.fit(X, y)
-
-        # Guardar modelo
-        model_path = Path(cfg.paths.models) / "lightgbm_tuned.pkl"
-        model_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(model_path, "wb") as f:
-            pickle.dump(final_model, f)
-
-        logger.info(f"Tuned model saved to {model_path}")
-
+    # ── Actualizar lightgbm.yaml ──────────────────────────
     config_path = Path("configs/model/lightgbm.yaml")
     updated_config = {
         "name": "lightgbm",
@@ -114,7 +96,7 @@ def main(cfg: DictConfig) -> None:
     with open(config_path, "w") as f:
         yaml.dump(updated_config, f, default_flow_style=False, sort_keys=False)
 
-    logger.info(f"configs/model/lightgbm.yaml updated with best params")
+    logger.info("configs/model/lightgbm.yaml updated with best params")
 
 
 if __name__ == "__main__":
