@@ -9,6 +9,7 @@ paths:
   processed_data: data/processed/churn_features.parquet
   models: models/
   artifacts: artifacts/
+  outputs: data/outputs/
 
 # ── Data split ────────────────────────────────────────────
 data:
