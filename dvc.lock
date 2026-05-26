@@ -1,0 +1,98 @@
+schema: '2.0'
+stages:
+  make_dataset:
+    cmd: python src/data/make_dataset.py
+    deps:
+    - path: configs/config.yaml
+      hash: md5
+      md5: 6a0573d9451d50c3c3d4de77f6b0a00a
+      size: 995
+    - path: configs/dataset/kaggle.yaml
+      hash: md5
+      md5: 74d7b39445f628140c66ef88586bdcbd
+      size: 99
+    - path: src/data/make_dataset.py
+      hash: md5
+      md5: 9be110f2826feec052d042c93482cb64
+      size: 1279
+    outs:
+    - path: data/raw/telco_customer_churn.csv
+      hash: md5
+      md5: 0f9de68e012bd3aed5fa7cdc9fc421af
+      size: 977501
+  preprocessing:
+    cmd: python src/data/preprocessing.py
+    deps:
+    - path: configs/config.yaml
+      hash: md5
+      md5: 6a0573d9451d50c3c3d4de77f6b0a00a
+      size: 995
+    - path: data/raw/telco_customer_churn.csv
+      hash: md5
+      md5: 0f9de68e012bd3aed5fa7cdc9fc421af
+      size: 977501
+    - path: src/data/preprocessing.py
+      hash: md5
+      md5: b2bfcf818f45b75099cb20f0ca405d8c
+      size: 3886
+    outs:
+    - path: data/processed/churn_features.parquet
+      hash: md5
+      md5: 62e2527ea83ad49005626052a0af64b3
+      size: 59514
+  train:
+    cmd: python src/models/train.py
+    deps:
+    - path: configs/config.yaml
+      hash: md5
+      md5: 6a0573d9451d50c3c3d4de77f6b0a00a
+      size: 995
+    - path: configs/model/lightgbm.yaml
+      hash: md5
+      md5: 9a49e3adde0f119c5a106c3cf6d38cdc
+      size: 249
+    - path: data/processed/churn_features.parquet
+      hash: md5
+      md5: 62e2527ea83ad49005626052a0af64b3
+      size: 59514
+    - path: src/models/train.py
+      hash: md5
+      md5: fef1865e5a1b2b88e6419f2b17833eaf
+      size: 3791
+    outs:
+    - path: models/lightgbm.pkl
+      hash: md5
+      md5: 851114f8341040cdb970a0e1a1c3951e
+      size: 660544
+  evaluate:
+    cmd: python src/models/evaluate.py
+    deps:
+    - path: configs/config.yaml
+      hash: md5
+      md5: 6a0573d9451d50c3c3d4de77f6b0a00a
+      size: 995
+    - path: data/processed/churn_features.parquet
+      hash: md5
+      md5: 62e2527ea83ad49005626052a0af64b3
+      size: 59514
+    - path: models/lightgbm.pkl
+      hash: md5
+      md5: 851114f8341040cdb970a0e1a1c3951e
+      size: 660544
+    - path: src/models/evaluate.py
+      hash: md5
+      md5: 97ed92cfa3ae7256102d8bba41844965
+      size: 3582
+    outs:
+    - path: artifacts/shap_beeswarm.png
+      hash: md5
+      md5: 18c94449824e9ac4f2193e51bfebfa43
+      size: 125901
+    - path: artifacts/shap_summary.png
+      hash: md5
+      md5: f8dfc24eb9a91221c0fb790ddea8ff3e
+      size: 106254
+    - path: artifacts/shap_values.npy
+      hash: md5
+      md5: 25fe5ec384d713633c972cde3596b38d
+      size: 248112

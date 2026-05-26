@@ -1,0 +1,40 @@
+stages:
+  make_dataset:
+    cmd: python src/data/make_dataset.py
+    deps:
+      - src/data/make_dataset.py
+      - configs/config.yaml
+      - configs/dataset/kaggle.yaml
+    outs:
+      - data/raw/telco_customer_churn.csv
+
+  preprocessing:
+    cmd: python src/data/preprocessing.py
+    deps:
+      - src/data/preprocessing.py
+      - configs/config.yaml
+      - data/raw/telco_customer_churn.csv
+    outs:
+      - data/processed/churn_features.parquet
+
+  train:
+    cmd: python src/models/train.py
+    deps:
+      - src/models/train.py
+      - configs/config.yaml
+      - configs/model/lightgbm.yaml
+      - data/processed/churn_features.parquet
+    outs:
+      - models/lightgbm.pkl
+
+  evaluate:
+    cmd: python src/models/evaluate.py
+    deps:
+      - src/models/evaluate.py
+      - configs/config.yaml
+      - models/lightgbm.pkl
+      - data/processed/churn_features.parquet
+    outs:
+      - artifacts/shap_values.npy
+      - artifacts/shap_summary.png
+      - artifacts/shap_beeswarm.png
