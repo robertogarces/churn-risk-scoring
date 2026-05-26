@@ -1,16 +1,17 @@
 defaults:
   - dataset: kaggle
+  - model: lightgbm
   - _self_
 
 # ── Paths ─────────────────────────────────────────────────
 paths:
   raw_data: data/raw/telco_customer_churn.csv
   processed_data: data/processed/churn_features.parquet
+  models: models/
 
 # ── Data split ────────────────────────────────────────────
 data:
   test_size: 0.2
-  val_size: 0.1
   random_state: 42
 
 # ── Business ──────────────────────────────────────────────
