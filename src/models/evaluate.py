@@ -86,9 +86,6 @@ def main(cfg: DictConfig) -> None:
     artifacts_path = Path(cfg.paths.artifacts)
     artifacts_path.mkdir(parents=True, exist_ok=True)
 
-    images_path = Path(cfg.paths.images)
-    images_path.mkdir(parents=True, exist_ok=True)
-
     # ── Load ──────────────────────────────────────────────
     model = load_model(Path(cfg.paths.models) / "lightgbm.pkl")
     X_test, y_test = load_data(
@@ -99,8 +96,8 @@ def main(cfg: DictConfig) -> None:
 
     # ── SHAP ──────────────────────────────────────────────
     shap_values = compute_shap_values(model, X_test, artifacts_path)
-    plot_shap_summary(shap_values, X_test, images_path)
-    plot_shap_beeswarm(shap_values, images_path)
+    plot_shap_summary(shap_values, X_test, artifacts_path)
+    plot_shap_beeswarm(shap_values, artifacts_path)
 
     logger.info("Evaluation complete")
 
