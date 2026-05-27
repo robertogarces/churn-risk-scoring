@@ -116,7 +116,14 @@ def main(cfg: DictConfig) -> None:
 
     df = fix_dtypes(df)
     df = drop_columns(df)
+
+    # Save target before transform — Churn is not a feature
+    churn = df["Churn"].reset_index(drop=True)
+
     df = transform(df)
+
+    # Re-attach target
+    df["Churn"] = churn
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(output_path, index=False)
@@ -124,7 +131,6 @@ def main(cfg: DictConfig) -> None:
     logger.info(f"Processed dataset saved to {output_path}")
     logger.info(f"Final shape: {df.shape}")
     logger.info(f"Columns: {list(df.columns)}")
-
 
 if __name__ == "__main__":
     main()

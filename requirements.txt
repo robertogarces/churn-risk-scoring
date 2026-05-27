@@ -3,7 +3,7 @@ uvicorn
 pydantic
 hydra-core
 omegaconf
-kagglehub
+kaggle
 lightgbm
 scikit-learn
 shap

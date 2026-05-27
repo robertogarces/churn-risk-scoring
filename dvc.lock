@@ -5,16 +5,16 @@ stages:
     deps:
     - path: configs/config.yaml
       hash: md5
-      md5: 6a0573d9451d50c3c3d4de77f6b0a00a
-      size: 995
+      md5: 8fe1c442db528746bb868817f495cc40
+      size: 1223
     - path: configs/dataset/kaggle.yaml
       hash: md5
-      md5: 74d7b39445f628140c66ef88586bdcbd
-      size: 99
+      md5: 47e7ad58e10c71f7526bb8a772d8eede
+      size: 87
     - path: src/data/make_dataset.py
       hash: md5
-      md5: 9be110f2826feec052d042c93482cb64
-      size: 1279
+      md5: c0794b63eba40c6ead8fd947f0fcb073
+      size: 1688
     outs:
     - path: data/raw/telco_customer_churn.csv
       hash: md5
@@ -25,35 +25,35 @@ stages:
     deps:
     - path: configs/config.yaml
       hash: md5
-      md5: 6a0573d9451d50c3c3d4de77f6b0a00a
-      size: 995
+      md5: 8fe1c442db528746bb868817f495cc40
+      size: 1223
     - path: data/raw/telco_customer_churn.csv
       hash: md5
       md5: 0f9de68e012bd3aed5fa7cdc9fc421af
       size: 977501
     - path: src/data/preprocessing.py
       hash: md5
-      md5: b2bfcf818f45b75099cb20f0ca405d8c
-      size: 3886
+      md5: f0094fa0877f6f2368af64e91f0183a0
+      size: 4051
     outs:
     - path: data/processed/churn_features.parquet
       hash: md5
-      md5: 62e2527ea83ad49005626052a0af64b3
+      md5: 2081fec2ce02e21b18df0f6c642471ab
       size: 59514
   train:
     cmd: python src/models/train.py
     deps:
     - path: configs/config.yaml
       hash: md5
-      md5: 6a0573d9451d50c3c3d4de77f6b0a00a
-      size: 995
+      md5: 8fe1c442db528746bb868817f495cc40
+      size: 1223
     - path: configs/model/lightgbm.yaml
       hash: md5
       md5: 9a49e3adde0f119c5a106c3cf6d38cdc
       size: 249
     - path: data/processed/churn_features.parquet
       hash: md5
-      md5: 62e2527ea83ad49005626052a0af64b3
+      md5: 2081fec2ce02e21b18df0f6c642471ab
       size: 59514
     - path: src/models/train.py
       hash: md5
@@ -69,11 +69,11 @@ stages:
     deps:
     - path: configs/config.yaml
       hash: md5
-      md5: 6a0573d9451d50c3c3d4de77f6b0a00a
-      size: 995
+      md5: 8fe1c442db528746bb868817f495cc40
+      size: 1223
     - path: data/processed/churn_features.parquet
       hash: md5
-      md5: 62e2527ea83ad49005626052a0af64b3
+      md5: 2081fec2ce02e21b18df0f6c642471ab
       size: 59514
     - path: models/lightgbm.pkl
       hash: md5
@@ -86,8 +86,8 @@ stages:
     outs:
     - path: artifacts/shap_beeswarm.png
       hash: md5
-      md5: 18c94449824e9ac4f2193e51bfebfa43
-      size: 125901
+      md5: fcd2b71e1972c7ab00100e766145e4af
+      size: 125863
     - path: artifacts/shap_summary.png
       hash: md5
       md5: f8dfc24eb9a91221c0fb790ddea8ff3e

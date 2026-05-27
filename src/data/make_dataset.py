@@ -1,12 +1,15 @@
 # src/data/make_dataset.py
 
-import kagglehub
 import logging
-import shutil
+import zipfile
 from pathlib import Path
 
 import hydra
+import kaggle
 from omegaconf import DictConfig
+
+import os
+os.environ["KAGGLE_API_TOKEN"] = open(Path.home() / ".kaggle" / "access_token").read().strip()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,10 +33,23 @@ def main(cfg: DictConfig) -> None:
         return
 
     if cfg.dataset.source == "kaggle":
+        raw_data_dir = output_path.parent
+        raw_data_dir.mkdir(parents=True, exist_ok=True)
+
         logger.info(f"Downloading dataset from Kaggle: {cfg.dataset.slug}")
-        kaggle_path = kagglehub.dataset_download(cfg.dataset.slug)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(Path(kaggle_path) / cfg.dataset.filename, output_path)
+        kaggle.api.authenticate()
+        kaggle.api.dataset_download_files(
+            cfg.dataset.slug,
+            path=str(raw_data_dir),
+            unzip=True
+        )
+
+        # Rename to our standard filename
+        downloaded = list(raw_data_dir.glob("*.csv"))
+        if not downloaded:
+            raise FileNotFoundError("No CSV found after download")
+
+        downloaded[0].rename(output_path)
         logger.info(f"Dataset saved to {output_path}")
     else:
         raise ValueError(f"Unsupported dataset source: {cfg.dataset.source}")
