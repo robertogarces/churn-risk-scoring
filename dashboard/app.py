@@ -6,6 +6,7 @@ import streamlit as st
 import plotly.express as px
 import yaml
 from pathlib import Path
+import os
 
 # ── Config ────────────────────────────────────────────────
 with open("configs/config.yaml", "r") as f:
@@ -16,7 +17,7 @@ AVG_LIFETIME = cfg["business"]["avg_lifetime_months"]
 RETENTION_COST = cfg["business"]["retention_cost_aud"]
 THRESHOLD_HIGH = cfg["scoring"]["thresholds"]["high"]
 THRESHOLD_MEDIUM = cfg["scoring"]["thresholds"]["medium"]
-API_URL = "http://localhost:8000"
+API_URL = os.getenv("API_URL", "http://localhost:8000")
 
 
 # ── Load batch scores ─────────────────────────────────────
