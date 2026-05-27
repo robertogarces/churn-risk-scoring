@@ -27,7 +27,7 @@ stages:
     outs:
       - models/lightgbm.pkl
 
-evaluate:
+  evaluate:
     cmd: python src/models/evaluate.py
     deps:
       - src/models/evaluate.py

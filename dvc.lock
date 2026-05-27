@@ -81,18 +81,18 @@ stages:
       size: 660544
     - path: src/models/evaluate.py
       hash: md5
-      md5: 779bf2cd98bb0ca4c9c36dd595ff7855
-      size: 3669
+      md5: 97ed92cfa3ae7256102d8bba41844965
+      size: 3582
     outs:
+    - path: artifacts/shap_beeswarm.png
+      hash: md5
+      md5: 9acd16ebe99f167fc3d2627e7c870500
+      size: 126088
+    - path: artifacts/shap_summary.png
+      hash: md5
+      md5: f8dfc24eb9a91221c0fb790ddea8ff3e
+      size: 106254
     - path: artifacts/shap_values.npy
       hash: md5
       md5: 25fe5ec384d713633c972cde3596b38d
       size: 248112
-    - path: images/shap_beeswarm.png
-      hash: md5
-      md5: b2a688123efaad644f75bda347990e7b
-      size: 126148
-    - path: images/shap_summary.png
-      hash: md5
-      md5: f8dfc24eb9a91221c0fb790ddea8ff3e
-      size: 106254
