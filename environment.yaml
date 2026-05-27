@@ -1,7 +1,0 @@
-name: churn-risk-scoring
-channels:
-  - conda-forge
-  - defaults
-dependencies:
-  - python=3.11
-prefix: /Users/robertogarces/miniforge3/envs/churn-risk-scoring
