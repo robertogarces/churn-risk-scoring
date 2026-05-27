@@ -14,11 +14,11 @@
 
 ## Overview
 
-Customer churn is one of the highest-impact problems in the telecommunications industry. This project builds a production-grade churn risk scoring system — from raw data to a live REST API and business dashboard — framed as a real solution for an Australian telco operator (Telstra/Optus market context).
+Customer churn is one of the highest-impact problems in the telecommunications industry. This project builds a end-to-end churn risk scoring system — from raw data to a live REST API and business dashboard — framed as a real solution for an Australian telco operator (Telstra/Optus market context).
 
 The system assigns a churn probability score to every customer, segments them by risk level, and explains each prediction using SHAP values. At an ARPU of AUD $64.76/month, the model identifies over $149,000 in monthly recurring revenue at risk.
 
-This is not a Kaggle notebook. Every component is productionized: reproducible pipeline, versioned data, tracked experiments, containerized services, and tested API endpoints.
+Every component is productionized: reproducible pipeline, versioned data, tracked experiments, containerized services, and tested API endpoints.
 
 ---
 
