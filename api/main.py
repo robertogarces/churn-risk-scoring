@@ -14,6 +14,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.schemas import CustomerProfile, ChurnPrediction, ChurnFactor
 from src.data.preprocessing import transform
 
+from contextlib import asynccontextmanager
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
@@ -39,17 +41,31 @@ app.add_middleware(
 MODEL_PATH = Path("models/lightgbm.pkl")
 CONFIG_PATH = Path("configs/config.yaml")
 
-with open(MODEL_PATH, "rb") as f:
-    model = pickle.load(f)
-
 with open(CONFIG_PATH, "r") as f:
     cfg = yaml.safe_load(f)
 
-explainer = shap.TreeExplainer(model)
-logger.info("Model and explainer loaded successfully")
-
 THRESHOLD_HIGH = cfg["scoring"]["thresholds"]["high"]
 THRESHOLD_MEDIUM = cfg["scoring"]["thresholds"]["medium"]
+
+model = None
+explainer = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global model, explainer
+    with open(MODEL_PATH, "rb") as f:
+        model = pickle.load(f)
+    explainer = shap.TreeExplainer(model)
+    logger.info("Model and explainer loaded successfully")
+    yield
+
+app = FastAPI(
+    title="Churn Risk Scoring API",
+    description="End-to-end churn prediction pipeline for an Australian telco operator.",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 
 # ── Preprocessing ─────────────────────────────────────────
