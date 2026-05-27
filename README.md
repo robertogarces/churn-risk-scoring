@@ -14,23 +14,23 @@
 
 ## Overview
 
-Customer churn is one of the highest-impact problems in the telecommunications industry. This project builds an end-to-end Machine Learning product prototype for a churn risk scoring system — from raw data to a live REST API and business dashboard — framed as a real solution for an Australian telco operator (Telstra/Optus market context).
+Customer churn is one of the highest-impact problems in the telecommunications industry. This project builds a production-grade churn risk scoring system — from raw data to a live REST API and business dashboard — framed as a real solution for an Australian telco operator (Telstra/Optus market context).
 
 The system assigns a churn probability score to every customer, segments them by risk level, and explains each prediction using SHAP values. At an ARPU of AUD $64.76/month, the model identifies over $149,000 in monthly recurring revenue at risk.
 
-Every component is productionized: reproducible pipeline, versioned data, tracked experiments, containerized services, and tested API endpoints.
+This is not a Kaggle notebook. Every component is productionized: reproducible pipeline, versioned data, tracked experiments, containerized services, and tested API endpoints.
 
 ---
 
 ## Dashboard
 
-![dashboard](images/dashboard-light.png)
+![Dashboard](images/dashboard-light.png)
 
 ---
 
 ## API
 
-![api](images/api.png)
+![API](images/api.png)
 
 ---
 
@@ -58,13 +58,13 @@ Three models were evaluated. LightGBM was selected as the production model after
 | Random Forest | 0.844 | 0.641 | 0.781 | 0.625 |
 | **LightGBM (tuned)** | **0.847** | **0.668** | **0.808** | **0.623** |
 
-Recall is the primary business metric — missing a churner (false negative) costs AUD $1,554 in lost CLV, while a false positive costs AUD $15 in unnecessary retention spend.
+Recall is the primary business metric — at an average CLV of AUD $1,554 (AUD $64.76 × 24 months), missing a churner costs ~100x more than a false positive retention action (AUD $15).
 
 ---
 
 ## SHAP — Global Feature Importance
 
-<!-- ADD SCREENSHOT: shap summary bar plot -->
+![SHAP Beeswarm](images/shap_beeswarm.png)
 
 Top predictors identified:
 
@@ -74,8 +74,6 @@ Top predictors identified:
 - **Payment Method** — Electronic check: 45.3% churn vs ~15% for automatic payment methods
 - **Online Security / Tech Support** — Absence of these services nearly triples churn rate
 
-![shap](artifacts/shap_beeswarm.png)
-
 ---
 
 ## Architecture
@@ -84,7 +82,7 @@ Top predictors identified:
 Raw Data (Kaggle)
       │
       ▼
-make_dataset.py          ← Downloads dataset automatically via kagglehub
+make_dataset.py          ← Downloads dataset automatically via Kaggle API
       │
       ▼
 preprocessing.py         ← Cleaning, encoding, feature engineering
@@ -149,13 +147,18 @@ churn-risk-scoring/
 │   ├── dataset/
 │   │   └── kaggle.yaml       # Dataset source config
 │   └── model/
-│       └── lightgbm.yaml     # Model hyperparameters (auto-updated by tune.py)
+│       ├── lightgbm.yaml     # Tuned hyperparameters (auto-updated by tune.py)
+│       ├── logistic_regression.yaml
+│       └── random_forest.yaml
 │
+├── images/                   # README assets
+├── artifacts/                # SHAP plots and values (DVC tracked)
 ├── models/                   # Trained model artifacts (DVC tracked)
-├── artifacts/                # SHAP plots and values
+├── conftest.py               # Pytest fixtures and model mocks
 ├── dvc.yaml                  # Reproducible pipeline definition
+├── dvc.lock                  # Pipeline state lock
 ├── Dockerfile
-├── docker-compose.yml
+├── docker-compose.yaml
 ├── pyproject.toml
 └── requirements.txt
 ```
@@ -169,12 +172,14 @@ churn-risk-scoring/
 ```bash
 git clone https://github.com/robertogarces/churn-risk-scoring.git
 cd churn-risk-scoring
-
 docker compose up --build
 ```
 
 - Dashboard: `http://localhost:8501`
 - API docs: `http://localhost:8000/docs`
+
+> **Note:** The Docker setup uses pre-built model artifacts mounted as volumes.
+> To run the full pipeline from scratch, use Option B.
 
 ### Option B — Local
 
@@ -186,22 +191,35 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-**2. Run pipeline**
+**2. Configure Kaggle credentials**
+
+```bash
+mkdir -p ~/.kaggle
+echo YOUR_KAGGLE_API_TOKEN > ~/.kaggle/access_token
+chmod 600 ~/.kaggle/access_token
+```
+
+> Get your token at kaggle.com → Settings → API → Create New Token.
+
+**3. Run full pipeline**
 ```bash
 dvc repro
 ```
 
-**3. Run API**
+**4. Run batch scoring**
+```bash
+python src/models/predict.py
+```
+
+**5. Run API**
 ```bash
 uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-**4. Run dashboard**
+**6. Run dashboard**
 ```bash
 streamlit run dashboard/app.py
 ```
-
-> **Note:** Kaggle credentials required for data download. Configure via `kaggle.json` or environment variables `KAGGLE_USERNAME` and `KAGGLE_KEY`.
 
 ---
 
@@ -251,10 +269,7 @@ curl -X POST http://localhost:8000/predict \
 ## Reproducing the Pipeline
 
 ```bash
-# Download data
-python src/data/make_dataset.py
-
-# Full pipeline (data → model → evaluation)
+# Full pipeline: data download → preprocessing → training → evaluation
 dvc repro
 
 # Hyperparameter tuning (updates configs/model/lightgbm.yaml automatically)
@@ -263,7 +278,7 @@ python src/models/tune.py
 # Batch scoring
 python src/models/predict.py
 
-# Run tests
+# Run tests (no model artifacts required)
 pytest api/tests/test_api.py -v
 ```
 
@@ -278,6 +293,16 @@ mlflow ui
 ```
 
 Open `http://localhost:5000` to compare runs across Logistic Regression, Random Forest, and LightGBM.
+
+---
+
+## Known Limitations
+
+- **No observation dates** — the dataset documents whether a customer churned *in the last month* but includes no timestamps. Churn rate cannot be expressed as a true monthly rate, and revenue figures are approximations based on the observation snapshot.
+- **Censored tenure data** — customers who have not yet churned have an unknown true lifetime. Average customer lifetime (24 months) is an industry approximation, not a derived figure.
+- **Static dataset** — the model is trained on a fixed snapshot. There is no retraining pipeline or concept drift detection.
+- **Simulated business context** — ARPU (AUD $64.76) is derived from the dataset. Retention cost (AUD $15) and average lifetime (24 months) are market approximations based on publicly available Telstra/Optus data.
+- **No DVC remote** — data artifacts are not stored in a remote. Reproducibility depends on Kaggle credentials and a working internet connection.
 
 ---
 
@@ -302,13 +327,13 @@ Open `http://localhost:5000` to compare runs across Logistic Regression, Random 
 
 **Source:** [IBM Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)  
 **Records:** 7,043 customers, 21 variables  
-**Target:** `Churn` — whether a customer left in the last month  
+**Target:** `Churn` — whether a customer left in the last month
 
-> Dataset is downloaded automatically via `kagglehub` when running the pipeline. No manual download required.
+> Dataset is downloaded automatically via the Kaggle API when running `dvc repro`. Kaggle credentials required — see Quickstart.
 
 ---
 
 ## Author
 
 **Roberto Garcés** — Data Scientist  
-[github.com/robertogarces](https://github.com/robertogarces) · [LinkedIn](#)
+[github.com/robertogarces](https://github.com/robertogarces) · [LinkedIn](https://www.linkedin.com/in/robertogarcesf/)
