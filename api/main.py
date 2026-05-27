@@ -3,6 +3,7 @@
 import logging
 import pickle
 from pathlib import Path
+from contextlib import asynccontextmanager
 
 import shap
 import numpy as np
@@ -14,28 +15,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.schemas import CustomerProfile, ChurnPrediction, ChurnFactor
 from src.data.preprocessing import transform
 
-from contextlib import asynccontextmanager
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
-
-# ── App ───────────────────────────────────────────────────
-app = FastAPI(
-    title="Churn Risk Scoring API",
-    description="End-to-end churn prediction pipeline for an Australian telco operator.",
-    version="1.0.0",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # ── Load model and config on startup ─────────────────────
 MODEL_PATH = Path("models/lightgbm.pkl")
@@ -60,6 +45,8 @@ async def lifespan(app: FastAPI):
     logger.info("Model and explainer loaded successfully")
     yield
 
+
+# ── App ───────────────────────────────────────────────────
 app = FastAPI(
     title="Churn Risk Scoring API",
     description="End-to-end churn prediction pipeline for an Australian telco operator.",
@@ -67,13 +54,16 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # ── Preprocessing ─────────────────────────────────────────
 def preprocess_input(profile: CustomerProfile) -> pd.DataFrame:
-    """
-    Convert raw customer profile to model-ready dataframe.
-    Uses the same transform() pipeline as preprocessing.py.
-    """
     df = pd.DataFrame([profile.model_dump()])
     return transform(df)
 
@@ -90,10 +80,6 @@ def get_risk_segment(probability: float) -> str:
 
 # ── SHAP local explanation ────────────────────────────────
 def get_top_factors(df: pd.DataFrame, profile: CustomerProfile, n: int = 3) -> list[ChurnFactor]:
-    """
-    Compute SHAP values for a single customer and return top n factors
-    with human-readable feature names and values.
-    """
     shap_values = explainer(df)
     shap_array = shap_values.values[0]
 
@@ -140,14 +126,11 @@ def get_top_factors(df: pd.DataFrame, profile: CustomerProfile, n: int = 3) -> l
     for idx in top_indices:
         fname = feature_names[idx]
         display_name = feature_name_map.get(fname, fname)
-
         if display_name in seen_features:
             continue
         seen_features.add(display_name)
-
         impact = "increases risk" if shap_array[idx] > 0 else "decreases risk"
         value = feature_value_map.get(fname, str(df[fname].values[0]))
-
         factors.append(ChurnFactor(
             feature=display_name,
             value=value,
@@ -166,14 +149,11 @@ def health():
 @app.post("/predict", response_model=ChurnPrediction)
 def predict(profile: CustomerProfile):
     logger.info("Received prediction request")
-
     df = preprocess_input(profile)
     churn_probability = float(model.predict_proba(df)[:, 1][0])
     risk_segment = get_risk_segment(churn_probability)
     top_factors = get_top_factors(df, profile)
-
     logger.info(f"Churn probability: {churn_probability:.3f} | Segment: {risk_segment}")
-
     return ChurnPrediction(
         churn_probability=round(churn_probability, 4),
         risk_segment=risk_segment,
