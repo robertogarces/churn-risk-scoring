@@ -296,6 +296,48 @@ Open `http://localhost:5000` to compare runs across Logistic Regression, Random 
 
 ---
 
+## Reproducibility Check
+
+The following sequence was verified on a clean clone with a fresh environment:
+
+```bash
+# 1. Clone and install
+git clone https://github.com/robertogarces/churn-risk-scoring.git
+cd churn-risk-scoring
+conda create -n churn-risk-scoring python=3.11 -y
+conda activate churn-risk-scoring
+pip install -r requirements.txt
+pip install -e .
+
+# 2. Configure Kaggle credentials
+mkdir -p ~/.kaggle
+echo YOUR_KAGGLE_API_TOKEN > ~/.kaggle/access_token
+chmod 600 ~/.kaggle/access_token
+
+# 3. Run full pipeline
+dvc repro
+
+# 4. Check model metrics
+dvc metrics show
+
+# 5. Run batch scoring
+python src/models/predict.py
+
+# 6. Run all tests
+pytest -v
+
+# 7. Start services
+uvicorn api.main:app --host 0.0.0.0 --port 8000
+streamlit run dashboard/app.py
+```
+
+Expected output after `dvc metrics show`:
+
+```
+Path                    churn_rate_test    f1      pr_auc    precision    recall    roc_auc    test_size
+artifacts/metrics.json  0.2654             0.6227  0.6663    0.5067       0.8075    0.8461     1409
+```
+
 ## Known Limitations
 
 - **No observation dates** — the dataset documents whether a customer churned *in the last month* but includes no timestamps. Churn rate cannot be expressed as a true monthly rate, and revenue figures are approximations based on the observation snapshot.
