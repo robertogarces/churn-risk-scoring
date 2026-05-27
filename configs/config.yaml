@@ -10,6 +10,7 @@ paths:
   models: models/
   artifacts: artifacts/
   outputs: data/outputs/
+  images: images/
 
 # ── Data split ────────────────────────────────────────────
 data:

@@ -36,5 +36,5 @@ stages:
       - data/processed/churn_features.parquet
     outs:
       - artifacts/shap_values.npy
-      - artifacts/shap_summary.png
-      - artifacts/shap_beeswarm.png
+      - images/shap_summary.png
+      - images/shap_beeswarm.png
