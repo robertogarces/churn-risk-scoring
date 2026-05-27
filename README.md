@@ -24,13 +24,13 @@ This is not a Kaggle notebook. Every component is productionized: reproducible p
 
 ## Dashboard
 
-<!-- ADD SCREENSHOT: streamlit dashboard overview -->
+![dashboard](images/dashboard-light.png)
 
 ---
 
 ## API
 
-<!-- ADD SCREENSHOT: fastapi /docs page with predict endpoint -->
+![api](images/api.png)
 
 ---
 
