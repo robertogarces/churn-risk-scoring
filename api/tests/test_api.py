@@ -48,11 +48,10 @@ def test_high_risk_customer_scores_high(high_risk_customer):
     assert data["risk_segment"] == "high"
 
 
-def test_low_risk_customer_scores_low(low_risk_customer):
+def test_low_risk_customer_scores_low(low_risk_customer, mock_model_low_risk):
     response = client.post("/predict", json=low_risk_customer)
     data = response.json()
     assert data["churn_probability"] < 0.5
-
 
 def test_top_factors_structure(high_risk_customer):
     response = client.post("/predict", json=high_risk_customer)
