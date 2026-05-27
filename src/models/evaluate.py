@@ -12,6 +12,15 @@ import shap
 from omegaconf import DictConfig
 from sklearn.model_selection import train_test_split
 
+import json
+from sklearn.metrics import (
+    roc_auc_score,
+    average_precision_score,
+    f1_score,
+    precision_score,
+    recall_score,
+)
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
@@ -81,6 +90,35 @@ def plot_shap_beeswarm(shap_values, artifacts_path: Path):
     logger.info(f"SHAP beeswarm plot saved to {path}")
 
 
+def save_metrics(model, X_test: pd.DataFrame, y_test: pd.Series, artifacts_path: Path) -> dict:
+    """
+    Evaluate model on test set and save metrics to artifacts/metrics.json.
+    Tracked by DVC — makes model performance auditable across runs.
+    """
+    y_pred = model.predict(X_test)
+    y_proba = model.predict_proba(X_test)[:, 1]
+
+    metrics = {
+        "roc_auc": round(roc_auc_score(y_test, y_proba), 4),
+        "pr_auc": round(average_precision_score(y_test, y_proba), 4),
+        "f1": round(f1_score(y_test, y_pred), 4),
+        "precision": round(precision_score(y_test, y_pred), 4),
+        "recall": round(recall_score(y_test, y_pred), 4),
+        "test_size": len(y_test),
+        "churn_rate_test": round(y_test.mean(), 4)
+    }
+
+    metrics_path = artifacts_path / "metrics.json"
+    with open(metrics_path, "w") as f:
+        json.dump(metrics, f, indent=2)
+
+    logger.info(f"Metrics saved to {metrics_path}")
+    for k, v in metrics.items():
+        logger.info(f"  {k}: {v}")
+
+    return metrics
+
+
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
 def main(cfg: DictConfig) -> None:
     artifacts_path = Path(cfg.paths.artifacts)
@@ -98,6 +136,9 @@ def main(cfg: DictConfig) -> None:
     shap_values = compute_shap_values(model, X_test, artifacts_path)
     plot_shap_summary(shap_values, X_test, artifacts_path)
     plot_shap_beeswarm(shap_values, artifacts_path)
+
+    # ── Metrics ──────────────────────────────────────────────
+    save_metrics(model, X_test, y_test, artifacts_path)
 
     logger.info("Evaluation complete")
 

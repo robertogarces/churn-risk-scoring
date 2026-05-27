@@ -38,3 +38,6 @@ stages:
       - artifacts/shap_values.npy
       - artifacts/shap_summary.png
       - artifacts/shap_beeswarm.png
+    metrics:
+      - artifacts/metrics.json:
+          cache: false

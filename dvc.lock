@@ -81,13 +81,17 @@ stages:
       size: 660544
     - path: src/models/evaluate.py
       hash: md5
-      md5: 97ed92cfa3ae7256102d8bba41844965
-      size: 3582
+      md5: 1ee5e0455fdd88639d75846ac2f759a8
+      size: 4970
     outs:
+    - path: artifacts/metrics.json
+      hash: md5
+      md5: 97b3d904d8533fa58c9798c0289494b0
+      size: 152
     - path: artifacts/shap_beeswarm.png
       hash: md5
-      md5: 9acd16ebe99f167fc3d2627e7c870500
-      size: 126088
+      md5: 2bc7b69dd8ead55e5d03603a6c981621
+      size: 126152
     - path: artifacts/shap_summary.png
       hash: md5
       md5: f8dfc24eb9a91221c0fb790ddea8ff3e
