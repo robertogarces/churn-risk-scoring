@@ -127,11 +127,13 @@ churn-risk-scoring/
 │   │   ├── features.py       # Centralized feature definitions
 │   │   ├── make_dataset.py   # Kaggle data download
 │   │   └── preprocessing.py  # Feature engineering pipeline
-│   └── models/
-│       ├── train.py          # Model training + MLflow tracking
-│       ├── tune.py           # Optuna hyperparameter tuning
-│       ├── evaluate.py       # SHAP evaluation
-│       └── predict.py        # Batch scoring
+│   ├── models/
+│   │   ├── train.py          # Model training + MLflow tracking
+│   │   ├── tune.py           # Optuna hyperparameter tuning
+│   │   ├── evaluate.py       # SHAP evaluation + metrics
+│   │   └── predict.py        # Batch scoring
+│   └── tests/
+│       └── test_preprocessing.py  # 14 preprocessing tests
 │
 ├── api/
 │   ├── main.py               # FastAPI app
@@ -151,8 +153,8 @@ churn-risk-scoring/
 │       ├── logistic_regression.yaml
 │       └── random_forest.yaml
 │
-├── images/                   # README assets
-├── artifacts/                # SHAP plots and values (DVC tracked)
+├── images/                   # README assets and SHAP visualizations
+├── artifacts/                # SHAP values and metrics.json (DVC tracked)
 ├── models/                   # Trained model artifacts (DVC tracked)
 ├── conftest.py               # Pytest fixtures and model mocks
 ├── dvc.yaml                  # Reproducible pipeline definition
