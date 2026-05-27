@@ -291,6 +291,24 @@ python src/models/predict.py
 pytest api/tests/test_api.py -v
 ```
 
+## Makefile Commands
+
+| Command | Description |
+|---|---|
+| `make setup` | Install dependencies and project package |
+| `make repro` | Run full DVC pipeline end-to-end |
+| `make tune` | Run Optuna hyperparameter tuning |
+| `make train` | Train model with current config |
+| `make evaluate` | Generate SHAP values and metrics |
+| `make score` | Run batch scoring on full dataset |
+| `make api` | Start FastAPI server on port 8000 |
+| `make dashboard` | Start Streamlit dashboard on port 8501 |
+| `make test` | Run all tests |
+| `make test-api` | Run API tests only |
+| `make test-preprocessing` | Run preprocessing tests only |
+| `make update-deps` | Recompile requirements.txt from requirements.in |
+| `make update-readme-assets` | Copy SHAP plots from artifacts/ to images/ |
+
 ---
 
 ## Experiment Tracking
