@@ -5,8 +5,8 @@ stages:
     deps:
     - path: configs/config.yaml
       hash: md5
-      md5: 8fe1c442db528746bb868817f495cc40
-      size: 1223
+      md5: d0ef7abf6ff86515f0899111a9ad1d3e
+      size: 1241
     - path: configs/dataset/kaggle.yaml
       hash: md5
       md5: 47e7ad58e10c71f7526bb8a772d8eede
@@ -25,8 +25,8 @@ stages:
     deps:
     - path: configs/config.yaml
       hash: md5
-      md5: 8fe1c442db528746bb868817f495cc40
-      size: 1223
+      md5: d0ef7abf6ff86515f0899111a9ad1d3e
+      size: 1241
     - path: data/raw/telco_customer_churn.csv
       hash: md5
       md5: 0f9de68e012bd3aed5fa7cdc9fc421af
@@ -45,8 +45,8 @@ stages:
     deps:
     - path: configs/config.yaml
       hash: md5
-      md5: 8fe1c442db528746bb868817f495cc40
-      size: 1223
+      md5: d0ef7abf6ff86515f0899111a9ad1d3e
+      size: 1241
     - path: configs/model/lightgbm.yaml
       hash: md5
       md5: 9a49e3adde0f119c5a106c3cf6d38cdc
@@ -69,8 +69,8 @@ stages:
     deps:
     - path: configs/config.yaml
       hash: md5
-      md5: 8fe1c442db528746bb868817f495cc40
-      size: 1223
+      md5: d0ef7abf6ff86515f0899111a9ad1d3e
+      size: 1241
     - path: data/processed/churn_features.parquet
       hash: md5
       md5: 2081fec2ce02e21b18df0f6c642471ab
@@ -81,18 +81,18 @@ stages:
       size: 660544
     - path: src/models/evaluate.py
       hash: md5
-      md5: 97ed92cfa3ae7256102d8bba41844965
-      size: 3582
+      md5: 779bf2cd98bb0ca4c9c36dd595ff7855
+      size: 3669
     outs:
-    - path: artifacts/shap_beeswarm.png
-      hash: md5
-      md5: fcd2b71e1972c7ab00100e766145e4af
-      size: 125863
-    - path: artifacts/shap_summary.png
-      hash: md5
-      md5: f8dfc24eb9a91221c0fb790ddea8ff3e
-      size: 106254
     - path: artifacts/shap_values.npy
       hash: md5
       md5: 25fe5ec384d713633c972cde3596b38d
       size: 248112
+    - path: images/shap_beeswarm.png
+      hash: md5
+      md5: b2a688123efaad644f75bda347990e7b
+      size: 126148
+    - path: images/shap_summary.png
+      hash: md5
+      md5: f8dfc24eb9a91221c0fb790ddea8ff3e
+      size: 106254
