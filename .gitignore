@@ -36,3 +36,10 @@ Thumbs.db
 # IDEs
 .vscode/
 .idea/
+
+# Pytest
+.pytest_cache/
+
+# Compiled
+*.pth
+
