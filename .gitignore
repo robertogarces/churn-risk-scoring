@@ -43,3 +43,6 @@ Thumbs.db
 # Compiled
 *.pth
 
+# Artifacts
+/artifacts/*
+!artifacts/metrics.json
