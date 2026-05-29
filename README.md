@@ -1,6 +1,10 @@
 # churn-risk-scoring
 
-> End-to-end churn risk scoring pipeline simulated for an Australian telecommunications operator.
+> Production-grade churn risk scoring system built for a simulated Australian telecommunications operator.
+
+The platform predicts customer churn probability, prioritizes subscribers by retention risk, and provides interpretable predictions through SHAP explainability. Based on an average revenue per user (ARPU) of AUD $64.76/month, the system identifies more than AUD $149K in monthly recurring revenue at risk.
+
+Beyond model performance, the project focuses on real-world ML engineering and operationalization: reproducible pipelines with DVC, experiment tracking with MLflow, hyperparameter optimization with Optuna, containerized deployment, automated testing, and live inference through a FastAPI service and Streamlit dashboard.
 
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![LightGBM](https://img.shields.io/badge/Model-LightGBM-green)
