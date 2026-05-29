@@ -6,6 +6,8 @@ The platform predicts customer churn probability, prioritizes subscribers by ret
 
 Beyond model performance, the project focuses on real-world ML engineering and operationalization: reproducible pipelines with DVC, experiment tracking with MLflow, hyperparameter optimization with Optuna, containerized deployment, automated testing, and live inference through a FastAPI service and Streamlit dashboard.
 
+The repository is structured as a production-style machine learning system rather than a standalone notebook experiment.
+
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![LightGBM](https://img.shields.io/badge/Model-LightGBM-green)
 ![FastAPI](https://img.shields.io/badge/API-FastAPI-009688)
