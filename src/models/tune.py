@@ -74,7 +74,7 @@ def main(cfg: DictConfig) -> None:
         mlflow.log_params(best_params)
         mlflow.log_metric("best_cv_roc_auc", best_score)
 
-    # ── Actualizar lightgbm.yaml ──────────────────────────
+    # ── Update lightgbm.yaml ──────────────────────────
     config_path = Path("configs/model/lightgbm.yaml")
     updated_config = {
         "name": "lightgbm",
