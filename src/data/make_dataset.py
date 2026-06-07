@@ -8,9 +8,6 @@ import hydra
 import kaggle
 from omegaconf import DictConfig
 
-import os
-os.environ["KAGGLE_API_TOKEN"] = open(Path.home() / ".kaggle" / "access_token").read().strip()
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",

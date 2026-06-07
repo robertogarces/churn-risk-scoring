@@ -219,6 +219,7 @@ if submitted:
 
     try:
         response = requests.post(f"{API_URL}/predict", json=payload)
+        response.raise_for_status()
         result = response.json()
 
         prob = result["churn_probability"]
@@ -246,5 +247,9 @@ if submitted:
             impact_icon = "⬆️" if factor["impact"] == "increases risk" else "⬇️"
             st.markdown(f"{impact_icon} **{factor['feature']}**: {factor['value']} — *{factor['impact']}*")
 
+    except requests.exceptions.ConnectionError:
+        st.error(f"Cannot connect to the API at {API_URL}. Make sure it is running.")
+    except requests.exceptions.HTTPError as e:
+        st.error(f"API returned an error ({e.response.status_code}): {e.response.text}")
     except Exception as e:
-        st.error(f"API error: {e}. Make sure the API is running on {API_URL}")
+        st.error(f"Unexpected error: {e}")

@@ -80,7 +80,6 @@ def plot_shap_summary(shap_values, X: pd.DataFrame, artifacts_path: Path):
 def plot_shap_beeswarm(shap_values, artifacts_path: Path):
     """Beeswarm plot — shows distribution of SHAP values per feature."""
     logger.info("Generating SHAP beeswarm plot...")
-    fig, ax = plt.subplots(figsize=(10, 7))
     shap.plots.beeswarm(shap_values, max_display=15, show=False)
     plt.title("SHAP Beeswarm Plot", fontweight="bold", fontsize=13)
     plt.tight_layout()
@@ -125,7 +124,7 @@ def main(cfg: DictConfig) -> None:
     artifacts_path.mkdir(parents=True, exist_ok=True)
 
     # ── Load ──────────────────────────────────────────────
-    model = load_model(Path(cfg.paths.models) / "lightgbm.pkl")
+    model = load_model(Path(cfg.paths.models) / f"{cfg.model.name}.pkl")
     X_test, y_test = load_data(
         cfg.paths.processed_data,
         cfg.data.test_size,

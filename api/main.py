@@ -1,6 +1,7 @@
 # api/main.py
 
 import logging
+import os
 import pickle
 from pathlib import Path
 from contextlib import asynccontextmanager
@@ -9,7 +10,7 @@ import shap
 import numpy as np
 import pandas as pd
 import yaml
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.schemas import CustomerProfile, ChurnPrediction, ChurnFactor
@@ -54,9 +55,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+_cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -148,6 +151,8 @@ def health():
 
 @app.post("/predict", response_model=ChurnPrediction)
 def predict(profile: CustomerProfile):
+    if model is None or explainer is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
     logger.info("Received prediction request")
     df = preprocess_input(profile)
     churn_probability = float(model.predict_proba(df)[:, 1][0])

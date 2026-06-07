@@ -80,7 +80,7 @@ def log_summary(results: pd.DataFrame, business_cfg) -> None:
 @hydra.main(config_path="../../configs", config_name="config", version_base=None)
 def main(cfg: DictConfig) -> None:
     # ── Load ──────────────────────────────────────────────
-    model = load_model(Path(cfg.paths.models) / "lightgbm.pkl")
+    model = load_model(Path(cfg.paths.models) / f"{cfg.model.name}.pkl")
     df = load_data(cfg.paths.processed_data)
 
     # ── Score ─────────────────────────────────────────────

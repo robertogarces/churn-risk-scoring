@@ -39,3 +39,13 @@ stages:
     metrics:
       - artifacts/metrics.json:
           cache: false
+
+  predict:
+    cmd: python src/models/predict.py
+    deps:
+      - src/models/predict.py
+      - configs/config.yaml
+      - models/lightgbm.pkl
+      - data/processed/churn_features.parquet
+    outs:
+      - data/outputs/churn_scores.csv

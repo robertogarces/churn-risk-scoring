@@ -57,6 +57,9 @@ def encode_binary_columns(df: pd.DataFrame) -> pd.DataFrame:
     df = df.copy()
     for col in BINARY_COLS:
         df[col] = df[col].map(BINARY_MAP)
+        nulls = df[col].isnull().sum()
+        if nulls > 0:
+            raise ValueError(f"Column '{col}' has {nulls} unmapped value(s). Expected one of: {list(BINARY_MAP.keys())}")
     logger.info(f"Encoded {len(BINARY_COLS)} binary columns to 0/1")
     return df
 

@@ -46,7 +46,7 @@ def objective(trial, X: pd.DataFrame, y: pd.Series) -> float:
         "colsample_bytree": trial.suggest_float("colsample_bytree", 0.5, 1.0),
         "class_weight": "balanced",
         "random_state": 42,
-        "n_jobs": -1,
+        "n_jobs": 1,
         "verbosity": -1,
     }
 
