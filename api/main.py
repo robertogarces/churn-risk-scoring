@@ -23,15 +23,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ── Load model and config on startup ─────────────────────
-MODEL_PATH = Path("models/lightgbm.pkl")
+# ── Load config on startup ────────────────────────────────
 CONFIG_PATH = Path("configs/config.yaml")
 
 with open(CONFIG_PATH, "r") as f:
     cfg = yaml.safe_load(f)
 
+MODEL_NAME = cfg["scoring"]["model_name"]
+MODEL_PATH = Path(cfg["paths"]["models"]) / f"{MODEL_NAME}.pkl"
 THRESHOLD_HIGH = cfg["scoring"]["thresholds"]["high"]
 THRESHOLD_MEDIUM = cfg["scoring"]["thresholds"]["medium"]
+N_TOP_FACTORS = cfg["scoring"]["top_factors"]
 
 model = None
 explainer = None
@@ -146,7 +148,7 @@ def get_top_factors(df: pd.DataFrame, profile: CustomerProfile, n: int = 3) -> l
 # ── Endpoints ─────────────────────────────────────────────
 @app.get("/health")
 def health():
-    return {"status": "ok", "model": "lightgbm"}
+    return {"status": "ok", "model": MODEL_NAME}
 
 
 @app.post("/predict", response_model=ChurnPrediction)
@@ -157,7 +159,7 @@ def predict(profile: CustomerProfile):
     df = preprocess_input(profile)
     churn_probability = float(model.predict_proba(df)[:, 1][0])
     risk_segment = get_risk_segment(churn_probability)
-    top_factors = get_top_factors(df, profile)
+    top_factors = get_top_factors(df, profile, n=N_TOP_FACTORS)
     logger.info(f"Churn probability: {churn_probability:.3f} | Segment: {risk_segment}")
     return ChurnPrediction(
         churn_probability=round(churn_probability, 4),

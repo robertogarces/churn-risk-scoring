@@ -29,6 +29,8 @@ business:
 
 # ── Risk Scoring ──────────────────────────────────────────
 scoring:
+  model_name: lightgbm
+  top_factors: 3
   thresholds:
     high: 0.6
     medium: 0.3
